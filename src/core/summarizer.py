@@ -50,13 +50,21 @@ class Summarizer:
         """
         self.language = language
         self.stemmer = Stemmer(language)
-        self.stop_words = get_stop_words(language)
         
-        # 日本語形態素解析器
-        if JANOME_AVAILABLE:
-            self.janome_tokenizer = JanomeTokenizer()
-        else:
-            self.janome_tokenizer = None
+        # ストップワード取得（エラーハンドリング付き）
+        try:
+            self.stop_words = get_stop_words(language)
+        except Exception:
+            # 日本語ストップワードが利用できない場合はデフォルトの英語を使用
+            try:
+                self.stop_words = get_stop_words("english")
+            except Exception:
+                # それでもダメな場合は空のリストを使用
+                self.stop_words = []
+        
+        # 日本語形態素解析器（実行ファイルでは無効化）
+        # PyInstallerでビルドした場合、辞書ファイルの問題を回避
+        self.janome_tokenizer = None
         
         # 要約器の設定
         self.summarizers = {
@@ -239,6 +247,10 @@ class Summarizer:
         Returns:
             List[str]: キーポイントリスト
         """
+        # 形態素解析器が利用できない場合は汎用的な方法を使用
+        if self.janome_tokenizer is None:
+            return self._extract_key_points_generic(text, max_points)
+        
         # 形態素解析で名詞を抽出
         words = []
         for token in self.janome_tokenizer.tokenize(text, wakati=False):
