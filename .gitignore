@@ -142,3 +142,11 @@ Desktop.ini
 
 # PyCharm
 .idea/ 
+# PyInstaller
+build/
+dist/
+*.spec
+# PyInstaller
+build/
+dist/
+*.spec
