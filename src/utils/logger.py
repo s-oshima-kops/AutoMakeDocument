@@ -94,9 +94,16 @@ class Logger:
             message += f" - {details}"
         self.info(message)
     
-    def log_error(self, error: Exception, context: str = ""):
+    def log_warning(self, message: str):
+        """警告ログを出力"""
+        self.warning(message)
+    
+    def log_error(self, error, context: str = ""):
         """エラーログを出力"""
-        error_message = f"エラーが発生しました: {type(error).__name__}: {str(error)}"
+        if isinstance(error, Exception):
+            error_message = f"エラーが発生しました: {type(error).__name__}: {str(error)}"
+        else:
+            error_message = f"エラーが発生しました: {str(error)}"
         if context:
             error_message = f"{context} - {error_message}"
         self.error(error_message)

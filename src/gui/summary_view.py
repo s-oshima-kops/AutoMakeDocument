@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QTextEdit,
 from PySide6.QtCore import Qt, QDate, QThread, Signal, QTimer
 from PySide6.QtGui import QFont, QTextCharFormat, QColor
 
-from core.data_manager import DataManager
+from core.data_manager import DataManager, WorkLog
 from core.summarizer import Summarizer
 from core.llm_processor import LLMProcessor
 from utils.config_manager import ConfigManager
@@ -29,7 +29,7 @@ class SummaryWorker(QThread):
     error_occurred = Signal(str)
     
     def __init__(self, data_manager: DataManager, summarizer: Summarizer,
-                 llm_processor: LLMProcessor, logs: List[Dict], config: Dict[str, Any]):
+                 llm_processor: LLMProcessor, logs: List[WorkLog], config: Dict[str, Any]):
         super().__init__()
         self.data_manager = data_manager
         self.summarizer = summarizer
@@ -69,9 +69,9 @@ class SummaryWorker(QThread):
         combined_lines = []
         
         for log in self.logs:
-            date_str = log.get('date', '')
-            content = log.get('content', '')
-            tags = log.get('tags', [])
+            date_str = log.date
+            content = log.content
+            tags = log.tags or []
             
             # 日付とタグを含めて統合
             combined_lines.append(f"【{date_str}】")

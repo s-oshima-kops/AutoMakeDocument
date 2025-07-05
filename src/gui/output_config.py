@@ -43,11 +43,14 @@ class OutputWorker(QThread):
             self.progress_updated.emit(20)
             
             # テンプレートを適用
-            formatted_content = self.template_engine.apply_template(
+            template_result = self.template_engine.apply_template(
                 self.template_id,
                 self.summary_data,
                 self.output_config
             )
+            
+            # 結果を文字列形式に変換
+            formatted_content = self.template_engine.format_output(template_result, "text")
             
             self.progress_updated.emit(60)
             
@@ -399,7 +402,8 @@ class OutputConfigWidget(QWidget):
             templates = self.template_engine.get_available_templates()
             self.template_combo.clear()
             
-            for template_id, template_info in templates.items():
+            for template_info in templates:
+                template_id = template_info.get('id', '')
                 display_name = template_info.get('name', template_id)
                 self.template_combo.addItem(display_name, template_id)
                 
@@ -439,9 +443,12 @@ class OutputConfigWidget(QWidget):
             template_id = self.template_combo.currentData()
             
             # テンプレートを適用
-            content = self.template_engine.apply_template(
+            template_result = self.template_engine.apply_template(
                 template_id, self.current_summary, config
             )
+            
+            # 結果を文字列形式に変換
+            content = self.template_engine.format_output(template_result, "text")
             
             # プレビューに表示
             self.preview_widget.set_preview_content(content)

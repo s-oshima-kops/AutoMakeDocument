@@ -172,13 +172,28 @@ class Summarizer:
                 return ["要約するテキストがありません。"]
             
             # パーサーとトークナイザーを設定
-            parser = PlaintextParser.from_string(cleaned_text, Tokenizer(self.language))
+            try:
+                parser = PlaintextParser.from_string(cleaned_text, Tokenizer(self.language))
+            except Exception as tokenizer_error:
+                print(f"日本語トークナイザーエラー: {tokenizer_error}")
+                print("英語トークナイザーにフォールバックします...")
+                parser = PlaintextParser.from_string(cleaned_text, Tokenizer("english"))
             
             # 要約器を選択
             summarizer = self.summarizers.get(method, self.summarizers["textrank"])
             
-            # 要約実行
-            summary = summarizer(parser.document, sentences_count)
+            # 要約実行（エラーハンドリングを追加）
+            try:
+                summary = summarizer(parser.document, sentences_count)
+            except Exception as summarizer_error:
+                # LexRankなど特定の要約器でエラーが発生した場合、TextRankにフォールバック
+                print(f"要約器エラー ({method}): {summarizer_error}")
+                if method != "textrank":
+                    print("TextRankにフォールバックします...")
+                    summarizer = self.summarizers["textrank"]
+                    summary = summarizer(parser.document, sentences_count)
+                else:
+                    raise summarizer_error
             
             # 要約文を文字列に変換
             summary_sentences = [str(sentence) for sentence in summary]

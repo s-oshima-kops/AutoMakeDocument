@@ -185,17 +185,20 @@ class TemplateEngine:
         
         return templates
     
-    def apply_template(self, template_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    def apply_template(self, template_id: str, data: Dict[str, Any], output_config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         テンプレートにデータを適用
         
         Args:
             template_id: テンプレートID
             data: 適用するデータ
+            output_config: 出力設定（オプション）
             
         Returns:
             Dict[str, Any]: 適用結果
         """
+        if output_config is None:
+            output_config = {}
         template = self.load_template(template_id)
         if not template:
             return {"error": f"テンプレート '{template_id}' が見つかりません"}
@@ -242,12 +245,42 @@ class TemplateEngine:
         Returns:
             Any: フィールドの値
         """
-        # データから値を取得
-        value = data.get(field.name, field.default)
+        # フィールドマッピング: テンプレートフィールド名 → 要約データフィールド名
+        field_mapping = {
+            'weekly_summary': 'summary_text',
+            'summary_text': 'summary_text',
+            'keywords': 'keywords',
+            'generated_at': 'generated_at',
+            'creation_date': 'generated_at',
+            'report_date': 'generated_at',
+            'daily_summary': 'summary_text',
+            'monthly_summary': 'summary_text',
+            'key_achievements': 'summary_text',
+            'completed_tasks': 'summary_text',
+            'ongoing_tasks': 'summary_text',
+            'project_summary': 'summary_text',
+            'activity_summary': 'summary_text',
+            'progress_summary': 'summary_text',
+            'achievement_summary': 'summary_text'
+        }
         
-        # 必須フィールドのチェック
+        # マッピングがあれば使用、なければ元のフィールド名を使用
+        mapped_field = field_mapping.get(field.name, field.name)
+        
+        # データから値を取得
+        value = data.get(mapped_field, field.default)
+        
+        # 必須フィールドで値がない場合、デフォルト値を設定
         if field.required and (value is None or value == ""):
-            return f"[必須フィールド '{field.name}' が未入力です]"
+            # 特定のフィールドにはデフォルト値を設定
+            if field.name in ['week_start_date', 'week_end_date']:
+                return "指定なし"
+            elif field.name == 'reporter_name':
+                return "報告者名未設定"
+            elif field.name == 'department':
+                return "部署未設定"
+            else:
+                return f"[必須フィールド '{field.name}' が未入力です]"
         
         # 型に応じた処理
         if field.type == "date":

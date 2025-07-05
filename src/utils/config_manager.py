@@ -200,4 +200,8 @@ class ConfigManager:
     def get_setting(self, key: str, default: Any = None) -> Any:
         """設定値を取得"""
         settings = self.get_user_settings()
-        return settings.get(key, default) 
+        return settings.get(key, default)
+    
+    def save_app_config(self, config: Dict[str, Any]):
+        """アプリケーション設定を保存"""
+        self.save_yaml(self.app_config_path, config) 

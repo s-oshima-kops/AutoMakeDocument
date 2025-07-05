@@ -387,4 +387,41 @@ class LLMProcessor:
             
         except Exception as e:
             print(f"LLM接続テストエラー: {e}")
-            return False 
+            return False
+    
+    def summarize_text(self, text: str, max_length: int = 2000) -> str:
+        """
+        テキストを要約
+        
+        Args:
+            text: 要約対象テキスト
+            max_length: 最大文字数
+            
+        Returns:
+            str: 要約されたテキスト
+        """
+        if not self.is_available:
+            return "LLMが利用できません。統計的要約を使用してください。"
+        
+        try:
+            # シンプルな要約プロンプト
+            prompt = f"""以下のテキストを{max_length}文字以内で要約してください。
+
+テキスト:
+{text}
+
+要約:"""
+            
+            response = self.llm(
+                prompt,
+                max_tokens=max_length // 2,  # 概算でトークン数を設定
+                temperature=self.config.temperature,
+                top_p=self.config.top_p,
+                repeat_penalty=self.config.repeat_penalty,
+                stop=["</s>", "Human:", "Assistant:"]
+            )
+            
+            return response["choices"][0]["text"].strip()
+            
+        except Exception as e:
+            return f"LLM要約エラー: {str(e)}" 
