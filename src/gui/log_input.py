@@ -3,7 +3,7 @@
 ログ入力ウィジェット
 """
 
-from datetime import date
+from datetime import date, timedelta
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                              QTextEdit, QPushButton, QDateEdit, QLineEdit,
                              QComboBox, QListWidget, QListWidgetItem,
@@ -346,9 +346,8 @@ class LogInputWidget(QWidget):
     
     def go_previous_day(self):
         """前日に移動"""
-        previous_date = self.current_date.replace(day=self.current_date.day-1) if self.current_date.day > 1 else self.current_date
-        if previous_date != self.current_date:
-            self.date_edit.setDate(QDate.fromString(DateUtils.format_date(previous_date), "yyyy-MM-dd"))
+        previous_date = self.current_date - timedelta(days=1)
+        self.date_edit.setDate(QDate.fromString(DateUtils.format_date(previous_date), "yyyy-MM-dd"))
     
     def go_today(self):
         """今日に移動"""
@@ -357,7 +356,7 @@ class LogInputWidget(QWidget):
     
     def go_next_day(self):
         """翌日に移動"""
-        next_date = self.current_date.replace(day=self.current_date.day+1)
+        next_date = self.current_date + timedelta(days=1)
         self.date_edit.setDate(QDate.fromString(DateUtils.format_date(next_date), "yyyy-MM-dd"))
     
     def toggle_auto_save(self, state):
@@ -420,4 +419,131 @@ class LogInputWidget(QWidget):
     def new_log(self):
         """新規ログ作成"""
         self.go_today()
-        self.content_edit.setFocus() 
+        self.content_edit.setFocus()
+    
+    # キーボードショートカット対応メソッド
+    def get_current_content(self):
+        """現在のログ内容を取得"""
+        return self.content_edit.toPlainText().strip()
+    
+    def refresh_data(self):
+        """データを更新"""
+        try:
+            # 現在のログを再読み込み
+            self.load_current_log()
+            
+            # 履歴と統計を更新
+            self.update_log_history()
+            self.update_statistics()
+            
+            self.logger.log_operation("データ更新完了")
+            
+        except Exception as e:
+            self.logger.log_error(e, "データ更新")
+            QMessageBox.critical(self, "エラー", f"データ更新中にエラーが発生しました: {str(e)}")
+    
+    def duplicate_current_log(self):
+        """現在のログを複製"""
+        try:
+            current_content = self.content_edit.toPlainText().strip()
+            current_tags = [tag.strip() for tag in self.tag_input.text().split(",") if tag.strip()]
+            
+            if not current_content:
+                return False
+            
+            # 明日の日付で複製
+            tomorrow = self.current_date + timedelta(days=1)
+            existing_log = self.data_manager.load_work_log(tomorrow)
+            
+            if existing_log:
+                reply = QMessageBox.question(
+                    self,
+                    "確認",
+                    f"{DateUtils.format_date_japanese(tomorrow)}のログが既に存在します。\n"
+                    f"上書きしますか？",
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                )
+                
+                if reply != QMessageBox.StandardButton.Yes:
+                    return False
+            
+            # 複製実行
+            success = self.data_manager.save_work_log(tomorrow, current_content, current_tags)
+            
+            if success:
+                self.logger.log_operation(f"ログ複製: {self.current_date} -> {tomorrow}")
+                self.update_log_history()
+                return True
+            else:
+                return False
+                
+        except Exception as e:
+            self.logger.log_error(e, "ログ複製")
+            return False
+    
+    def delete_current_log(self):
+        """現在のログを削除"""
+        try:
+            existing_log = self.data_manager.load_work_log(self.current_date)
+            
+            if not existing_log:
+                return False
+            
+            # 削除実行
+            success = self.data_manager.delete_work_log(self.current_date)
+            
+            if success:
+                self.content_edit.clear()
+                self.tag_input.clear()
+                self.preview_widget.clear_preview()
+                self.update_log_history()
+                self.update_statistics()
+                self.logger.log_operation(f"ログ削除: {self.current_date}")
+                return True
+            else:
+                return False
+                
+        except Exception as e:
+            self.logger.log_error(e, "ログ削除")
+            return False
+    
+    def open_snippet_manager(self):
+        """定型文管理ダイアログを開く"""
+        try:
+            # 簡単な定型文管理ダイアログを実装
+            from gui.dialogs.snippet_manager import SnippetManagerDialog
+            
+            dialog = SnippetManagerDialog(self)
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                selected_snippet = dialog.get_selected_snippet()
+                if selected_snippet:
+                    # 選択された定型文を現在のカーソル位置に挿入
+                    cursor = self.content_edit.textCursor()
+                    cursor.insertText(selected_snippet)
+                    self.content_edit.setTextCursor(cursor)
+                    
+        except ImportError:
+            # 定型文管理ダイアログが未実装の場合の簡易版
+            snippets = [
+                "本日の作業内容:",
+                "- 会議参加: ",
+                "- 開発作業: ",
+                "- レビュー: ",
+                "- 問題・課題: ",
+                "- 明日の予定: "
+            ]
+            
+            from PySide6.QtWidgets import QInputDialog
+            snippet, ok = QInputDialog.getItem(
+                self, "定型文挿入", "挿入する定型文を選択:", 
+                snippets, 0, False
+            )
+            
+            if ok and snippet:
+                cursor = self.content_edit.textCursor()
+                cursor.insertText(snippet)
+                self.content_edit.setTextCursor(cursor)
+                
+        except Exception as e:
+            self.logger.log_error(e, "定型文管理")
+            QMessageBox.critical(self, "エラー", f"定型文管理中にエラーが発生しました: {str(e)}") 

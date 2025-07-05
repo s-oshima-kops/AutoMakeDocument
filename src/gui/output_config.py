@@ -633,4 +633,26 @@ class OutputConfigWidget(QWidget):
         
     def run_export(self):
         """出力を実行（エイリアス）"""
-        self.execute_output() 
+        self.execute_output()
+    
+    # キーボードショートカット対応メソッド
+    def refresh_data(self):
+        """データを更新"""
+        try:
+            # テンプレートを再読み込み
+            self.load_templates()
+            
+            # 設定を再読み込み
+            self.load_settings()
+            
+            # プレビューをクリア
+            self.preview_widget.set_preview_content("")
+            
+            # デフォルトファイル名を生成
+            self.filename_edit.setText(self.generate_default_filename())
+            
+            # ログに記録
+            self.logger.log_operation("出力データ更新完了")
+            
+        except Exception as e:
+            self.logger.log_error(e, "出力データ更新") 

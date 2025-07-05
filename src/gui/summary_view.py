@@ -513,4 +513,163 @@ class SummaryViewWidget(QWidget):
         
     def run_summarization(self):
         """要約を実行（エイリアス）"""
-        self.generate_summary() 
+        self.generate_summary()
+    
+    # キーボードショートカット対応メソッド
+    def quick_summarize(self, text: str):
+        """クイック要約"""
+        try:
+            # 簡易要約を実行
+            summary_text = self.summarizer.summarize_text(text, sentences_count=3, method='textrank')
+            keywords = self.summarizer.extract_keywords(text, top_k=5)
+            
+            # 結果を構築
+            result = {
+                'summary_text': summary_text,
+                'original_text': text,
+                'keywords': keywords,
+                'method': 'quick_textrank',
+                'generated_at': datetime.now().isoformat(),
+                'stats': {
+                    'total_chars': len(text),
+                    'total_words': len(text.split()),
+                    'summary_ratio': len(summary_text) / len(text) if text else 0
+                }
+            }
+            
+            # 表示を更新
+            self.current_summary = result
+            self.summary_text_edit.setPlainText(summary_text)
+            self.original_text_edit.setPlainText(text)
+            
+            # キーワードを表示
+            self.keywords_list.clear()
+            for keyword in keywords:
+                self.keywords_list.addItem(keyword)
+            
+            # 統計情報を表示
+            self.stats_widget.set_stats(result['stats'])
+            
+            # ボタンを有効化
+            self.edit_button.setEnabled(True)
+            self.copy_button.setEnabled(True)
+            self.regenerate_button.setEnabled(True)
+            
+            # シグナルを発行
+            self.summary_generated.emit(result)
+            
+            # ログに記録
+            self.logger.log_operation("クイック要約完了")
+            
+        except Exception as e:
+            self.logger.log_error(e, "クイック要約")
+    
+    def refresh_data(self):
+        """データを更新"""
+        try:
+            # 現在の設定を保持
+            current_start = self.start_date_edit.date().toPython()
+            current_end = self.end_date_edit.date().toPython()
+            
+            # ログを再取得
+            self.current_logs = self.data_manager.get_work_logs_by_date_range(current_start, current_end)
+            
+            # 表示をクリア
+            self.summary_text_edit.clear()
+            self.original_text_edit.clear()
+            self.keywords_list.clear()
+            self.stats_widget.set_stats({})
+            
+            # ボタンを無効化
+            self.edit_button.setEnabled(False)
+            self.copy_button.setEnabled(False)
+            self.regenerate_button.setEnabled(False)
+            
+            # 現在の要約をクリア
+            self.current_summary = None
+            
+            # ログに記録
+            self.logger.log_operation("要約データ更新完了")
+            
+        except Exception as e:
+            self.logger.log_error(e, "要約データ更新")
+    
+    # ChatGPT連携機能
+    def set_chatgpt_summarizer(self, chatgpt_summarizer):
+        """ChatGPT要約器を設定"""
+        self.chatgpt_summarizer = chatgpt_summarizer
+        
+        # ChatGPT要約オプションを有効化
+        if hasattr(self, 'use_chatgpt_check'):
+            self.use_chatgpt_check.setEnabled(chatgpt_summarizer.is_configured())
+    
+    def get_chatgpt_summarizer(self):
+        """ChatGPT要約器を取得"""
+        return getattr(self, 'chatgpt_summarizer', None)
+    
+    def chatgpt_summarize(self, text: str, summary_type: str = "quick_summary"):
+        """ChatGPTを使用して要約"""
+        try:
+            if not hasattr(self, 'chatgpt_summarizer'):
+                raise ValueError("ChatGPT要約器が設定されていません")
+            
+            chatgpt_summarizer = self.chatgpt_summarizer
+            if not chatgpt_summarizer.is_configured():
+                raise ValueError("ChatGPT APIキーが設定されていません")
+            
+            # ChatGPT要約を実行
+            result = chatgpt_summarizer.summarize_text(text, summary_type)
+            
+            # 結果を表示用に変換
+            display_result = {
+                'summary_text': result['summary_text'],
+                'original_text': text,
+                'method': 'chatgpt',
+                'model': result.get('model', ''),
+                'tokens_used': result.get('tokens_used', 0),
+                'generated_at': result['generated_at'],
+                'stats': {
+                    'total_chars': len(text),
+                    'total_words': len(text.split()),
+                    'summary_chars': len(result['summary_text']),
+                    'tokens_used': result.get('tokens_used', 0),
+                    'summary_ratio': len(result['summary_text']) / len(text) if text else 0
+                }
+            }
+            
+            # キーワード抽出も実行
+            try:
+                keywords = chatgpt_summarizer.extract_keywords(text)
+                display_result['keywords'] = keywords
+            except Exception:
+                display_result['keywords'] = []
+            
+            # 表示を更新
+            self.current_summary = display_result
+            self.summary_text_edit.setPlainText(display_result['summary_text'])
+            self.original_text_edit.setPlainText(text)
+            
+            # キーワードを表示
+            self.keywords_list.clear()
+            for keyword in display_result.get('keywords', []):
+                self.keywords_list.addItem(keyword)
+            
+            # 統計情報を表示
+            self.stats_widget.set_stats(display_result['stats'])
+            
+            # ボタンを有効化
+            self.edit_button.setEnabled(True)
+            self.copy_button.setEnabled(True)
+            self.regenerate_button.setEnabled(True)
+            
+            # シグナルを発行
+            self.summary_generated.emit(display_result)
+            
+            # ログに記録
+            self.logger.log_operation(f"ChatGPT要約完了: {result.get('tokens_used', 0)}トークン使用")
+            
+            return display_result
+            
+        except Exception as e:
+            self.logger.log_error(e, "ChatGPT要約")
+            raise Exception(f"ChatGPT要約エラー: {str(e)}") 

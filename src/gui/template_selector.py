@@ -8,7 +8,7 @@ from pathlib import Path
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QListWidget,
                              QListWidgetItem, QTextEdit, QLabel, QGroupBox,
                              QSplitter, QPushButton, QComboBox, QSpinBox,
-                             QCheckBox, QScrollArea, QFormLayout)
+                             QCheckBox, QScrollArea, QFormLayout, QDialog, QLineEdit)
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QFont
 
@@ -399,4 +399,143 @@ class TemplateSelectorWidget(QWidget):
             return None, None
             
         config = self.config_widget.get_config()
-        return self.current_template_id, config 
+        return self.current_template_id, config
+    
+    # キーボードショートカット対応メソッド
+    def refresh_templates(self):
+        """テンプレートを更新"""
+        try:
+            # 現在の選択を保存
+            current_selection = self.current_template_id
+            
+            # テンプレートを再読み込み
+            self.load_templates()
+            
+            # 選択を復元
+            if current_selection:
+                self.select_template_by_id(current_selection)
+                
+            self.logger.log_operation("テンプレート更新完了")
+            
+        except Exception as e:
+            self.logger.log_error(e, "テンプレート更新")
+    
+    def open_template_editor(self):
+        """テンプレート編集ダイアログを開く"""
+        try:
+            # テンプレート編集ダイアログ
+            dialog = QDialog(self)
+            dialog.setWindowTitle("テンプレート編集")
+            dialog.setModal(True)
+            dialog.resize(800, 600)
+            
+            layout = QVBoxLayout(dialog)
+            
+            # 新規テンプレート作成用フィールド
+            form_layout = QHBoxLayout()
+            form_layout.addWidget(QLabel("テンプレート名:"))
+            name_edit = QLineEdit()
+            name_edit.setPlaceholderText("新規テンプレート名を入力")
+            form_layout.addWidget(name_edit)
+            layout.addLayout(form_layout)
+            
+            # 説明入力
+            desc_layout = QHBoxLayout()
+            desc_layout.addWidget(QLabel("説明:"))
+            desc_edit = QLineEdit()
+            desc_edit.setPlaceholderText("テンプレートの説明を入力")
+            desc_layout.addWidget(desc_edit)
+            layout.addLayout(desc_layout)
+            
+            # YAML編集エリア
+            yaml_edit = QTextEdit()
+            yaml_edit.setPlaceholderText("""
+# テンプレート定義例
+name: "カスタムテンプレート"
+description: "カスタム作成のテンプレート"
+type: "custom"
+output_formats:
+  - "txt"
+  - "docx"
+fields:
+  - name: "summary_text"
+    type: "text"
+    description: "要約テキスト"
+    required: true
+  - name: "creation_date"
+    type: "date"
+    description: "作成日"
+    required: true
+sections:
+  - name: "概要"
+    fields:
+      - "summary_text"
+      - "creation_date"
+""")
+            layout.addWidget(yaml_edit)
+            
+            # ボタン
+            button_layout = QHBoxLayout()
+            
+            save_button = QPushButton("保存")
+            def save_template():
+                name = name_edit.text().strip()
+                description = desc_edit.text().strip()
+                yaml_content = yaml_edit.toPlainText().strip()
+                
+                if not name:
+                    from PySide6.QtWidgets import QMessageBox
+                    QMessageBox.warning(dialog, "警告", "テンプレート名を入力してください")
+                    return
+                    
+                if not yaml_content:
+                    from PySide6.QtWidgets import QMessageBox
+                    QMessageBox.warning(dialog, "警告", "YAML定義を入力してください")
+                    return
+                
+                # カスタムテンプレートを保存
+                try:
+                    custom_template_path = self.template_engine.get_template_dir() / "custom" / f"{name}.yaml"
+                    custom_template_path.parent.mkdir(parents=True, exist_ok=True)
+                    
+                    with open(custom_template_path, 'w', encoding='utf-8') as f:
+                        f.write(yaml_content)
+                    
+                    self.logger.log_operation(f"カスタムテンプレート保存: {name}")
+                    
+                    # テンプレートを再読み込み
+                    self.refresh_templates()
+                    
+                    dialog.accept()
+                    
+                except Exception as e:
+                    from PySide6.QtWidgets import QMessageBox
+                    QMessageBox.critical(dialog, "エラー", f"テンプレートの保存に失敗しました: {str(e)}")
+                    
+            save_button.clicked.connect(save_template)
+            button_layout.addWidget(save_button)
+            
+            cancel_button = QPushButton("キャンセル")
+            cancel_button.clicked.connect(dialog.reject)
+            button_layout.addWidget(cancel_button)
+            
+            layout.addLayout(button_layout)
+            
+            # 既存テンプレートの編集
+            if self.current_template_id:
+                template_info = self.templates.get(self.current_template_id)
+                if template_info:
+                    name_edit.setText(template_info.get('name', ''))
+                    desc_edit.setText(template_info.get('description', ''))
+                    
+                    # YAML形式でテンプレート情報を表示
+                    import yaml
+                    yaml_content = yaml.dump(template_info, default_flow_style=False, allow_unicode=True)
+                    yaml_edit.setPlainText(yaml_content)
+            
+            dialog.exec()
+            
+        except Exception as e:
+            self.logger.log_error(e, "テンプレート編集")
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.critical(self, "エラー", f"テンプレート編集中にエラーが発生しました: {str(e)}") 

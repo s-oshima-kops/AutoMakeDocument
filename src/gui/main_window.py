@@ -6,7 +6,7 @@
 from pathlib import Path
 from PySide6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QTabWidget, QMenuBar, QStatusBar, QMessageBox,
-                             QProgressBar, QLabel, QSplitter, QTextEdit)
+                             QProgressBar, QLabel, QSplitter, QTextEdit, QDialog)
 from PySide6.QtCore import Qt, QTimer, QThread, Signal
 from PySide6.QtGui import QAction, QIcon, QKeySequence
 
@@ -126,13 +126,13 @@ class MainWindow(QMainWindow):
         
         # 新規作成
         new_action = QAction("新規作成(&N)", self)
-        new_action.setShortcut(QKeySequence.New)
+        new_action.setShortcut(QKeySequence.StandardKey.New)
         new_action.triggered.connect(self.new_log)
         file_menu.addAction(new_action)
         
         # 保存
         save_action = QAction("保存(&S)", self)
-        save_action.setShortcut(QKeySequence.Save)
+        save_action.setShortcut(QKeySequence.StandardKey.Save)
         save_action.triggered.connect(self.save_log)
         file_menu.addAction(save_action)
         
@@ -143,11 +143,16 @@ class MainWindow(QMainWindow):
         settings_action.triggered.connect(self.open_settings)
         file_menu.addAction(settings_action)
         
+        # ChatGPT設定
+        chatgpt_settings_action = QAction("ChatGPT設定(&C)", self)
+        chatgpt_settings_action.triggered.connect(self.open_chatgpt_settings)
+        file_menu.addAction(chatgpt_settings_action)
+        
         file_menu.addSeparator()
         
         # 終了
         exit_action = QAction("終了(&X)", self)
-        exit_action.setShortcut(QKeySequence.Quit)
+        exit_action.setShortcut(QKeySequence.StandardKey.Quit)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
         
@@ -156,24 +161,24 @@ class MainWindow(QMainWindow):
         
         # 元に戻す
         undo_action = QAction("元に戻す(&U)", self)
-        undo_action.setShortcut(QKeySequence.Undo)
+        undo_action.setShortcut(QKeySequence.StandardKey.Undo)
         edit_menu.addAction(undo_action)
         
         # やり直し
         redo_action = QAction("やり直し(&R)", self)
-        redo_action.setShortcut(QKeySequence.Redo)
+        redo_action.setShortcut(QKeySequence.StandardKey.Redo)
         edit_menu.addAction(redo_action)
         
         edit_menu.addSeparator()
         
         # コピー
         copy_action = QAction("コピー(&C)", self)
-        copy_action.setShortcut(QKeySequence.Copy)
+        copy_action.setShortcut(QKeySequence.StandardKey.Copy)
         edit_menu.addAction(copy_action)
         
         # 貼り付け
         paste_action = QAction("貼り付け(&P)", self)
-        paste_action.setShortcut(QKeySequence.Paste)
+        paste_action.setShortcut(QKeySequence.StandardKey.Paste)
         edit_menu.addAction(paste_action)
         
         # 表示メニュー
@@ -181,7 +186,7 @@ class MainWindow(QMainWindow):
         
         # フルスクリーン
         fullscreen_action = QAction("フルスクリーン(&F)", self)
-        fullscreen_action.setShortcut(QKeySequence.FullScreen)
+        fullscreen_action.setShortcut(QKeySequence.StandardKey.FullScreen)
         fullscreen_action.triggered.connect(self.toggle_fullscreen)
         view_menu.addAction(fullscreen_action)
         
@@ -199,6 +204,64 @@ class MainWindow(QMainWindow):
         export_action.setShortcut(QKeySequence("Ctrl+E"))
         export_action.triggered.connect(self.run_export)
         tools_menu.addAction(export_action)
+        
+        # 今日の日付に移動
+        today_action = QAction("今日の日付(&T)", self)
+        today_action.setShortcut(QKeySequence("Ctrl+T"))
+        today_action.triggered.connect(self.go_to_today)
+        tools_menu.addAction(today_action)
+        
+        # 前日に移動
+        prev_day_action = QAction("前日(&P)", self)
+        prev_day_action.setShortcut(QKeySequence("Ctrl+Left"))
+        prev_day_action.triggered.connect(self.go_to_previous_day)
+        tools_menu.addAction(prev_day_action)
+        
+        # 翌日に移動
+        next_day_action = QAction("翌日(&N)", self)
+        next_day_action.setShortcut(QKeySequence("Ctrl+Right"))
+        next_day_action.triggered.connect(self.go_to_next_day)
+        tools_menu.addAction(next_day_action)
+        
+        tools_menu.addSeparator()
+        
+        # 要約生成（Ctrl+Enter）
+        quick_summarize_action = QAction("クイック要約(&Q)", self)
+        quick_summarize_action.setShortcut(QKeySequence("Ctrl+Return"))
+        quick_summarize_action.triggered.connect(self.quick_summarize)
+        tools_menu.addAction(quick_summarize_action)
+        
+        # 更新
+        refresh_action = QAction("更新(&R)", self)
+        refresh_action.setShortcut(QKeySequence("F5"))
+        refresh_action.triggered.connect(self.refresh_data)
+        tools_menu.addAction(refresh_action)
+        
+        # ログ複製
+        duplicate_action = QAction("ログ複製(&D)", self)
+        duplicate_action.setShortcut(QKeySequence("Ctrl+D"))
+        duplicate_action.triggered.connect(self.duplicate_log)
+        tools_menu.addAction(duplicate_action)
+        
+        # ログ削除
+        delete_action = QAction("ログ削除(&Delete)", self)
+        delete_action.setShortcut(QKeySequence("Ctrl+Delete"))
+        delete_action.triggered.connect(self.delete_log)
+        tools_menu.addAction(delete_action)
+        
+        tools_menu.addSeparator()
+        
+        # テンプレート編集
+        edit_template_action = QAction("テンプレート編集(&E)", self)
+        edit_template_action.setShortcut(QKeySequence("Ctrl+Shift+T"))
+        edit_template_action.triggered.connect(self.edit_template)
+        tools_menu.addAction(edit_template_action)
+        
+        # 定型文管理
+        manage_snippets_action = QAction("定型文管理(&S)", self)
+        manage_snippets_action.setShortcut(QKeySequence("Ctrl+Shift+S"))
+        manage_snippets_action.triggered.connect(self.manage_snippets)
+        tools_menu.addAction(manage_snippets_action)
         
         # ヘルプメニュー
         help_menu = menubar.addMenu("ヘルプ(&H)")
@@ -405,4 +468,137 @@ class MainWindow(QMainWindow):
         # ログに記録
         self.logger.log_operation("アプリケーション終了")
         
-        event.accept() 
+        event.accept()
+    
+    # キーボードショートカット対応メソッド
+    def go_to_today(self):
+        """今日の日付に移動"""
+        self.log_input_widget.go_today()
+        self.tab_widget.setCurrentIndex(0)  # ログ入力タブに切り替え
+        self.status_label.setText("今日の日付に移動しました")
+    
+    def go_to_previous_day(self):
+        """前日に移動"""
+        self.log_input_widget.go_previous_day()
+        self.tab_widget.setCurrentIndex(0)  # ログ入力タブに切り替え
+        self.status_label.setText("前日に移動しました")
+    
+    def go_to_next_day(self):
+        """翌日に移動"""
+        self.log_input_widget.go_next_day()
+        self.tab_widget.setCurrentIndex(0)  # ログ入力タブに切り替え
+        self.status_label.setText("翌日に移動しました")
+    
+    def quick_summarize(self):
+        """クイック要約生成"""
+        # 現在のタブに応じて適切な要約を実行
+        current_tab = self.tab_widget.currentIndex()
+        
+        if current_tab == 0:  # ログ入力タブ
+            # 現在のログ内容を即座に要約
+            current_content = self.log_input_widget.get_current_content()
+            if current_content:
+                self.summary_view_widget.quick_summarize(current_content)
+                self.tab_widget.setCurrentIndex(2)  # 要約表示タブに切り替え
+            else:
+                self.show_info("クイック要約", "要約するログ内容がありません")
+        else:
+            # 通常の要約実行
+            self.run_summarization()
+        
+        self.status_label.setText("クイック要約を実行しました")
+    
+    def refresh_data(self):
+        """データ更新"""
+        try:
+            # 各ウィジェットのデータを更新
+            self.log_input_widget.refresh_data()
+            self.template_selector_widget.refresh_templates()
+            self.summary_view_widget.refresh_data()
+            self.output_config_widget.refresh_data()
+            
+            self.status_label.setText("データ更新完了")
+            self.logger.log_operation("データ更新完了")
+            
+        except Exception as e:
+            self.logger.log_error(e, "データ更新")
+            self.show_error("データ更新エラー", f"データ更新中にエラーが発生しました: {str(e)}")
+    
+    def duplicate_log(self):
+        """ログ複製"""
+        try:
+            if self.log_input_widget.duplicate_current_log():
+                self.status_label.setText("ログを複製しました")
+                self.logger.log_operation("ログ複製完了")
+            else:
+                self.show_info("ログ複製", "複製するログが選択されていません")
+        except Exception as e:
+            self.logger.log_error(e, "ログ複製")
+            self.show_error("ログ複製エラー", f"ログ複製中にエラーが発生しました: {str(e)}")
+    
+    def delete_log(self):
+        """ログ削除"""
+        try:
+            result = QMessageBox.question(
+                self, "ログ削除", 
+                "選択されたログを削除してもよろしいですか？",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+            
+            if result == QMessageBox.StandardButton.Yes:
+                if self.log_input_widget.delete_current_log():
+                    self.status_label.setText("ログを削除しました")
+                    self.logger.log_operation("ログ削除完了")
+                else:
+                    self.show_info("ログ削除", "削除するログが選択されていません")
+                    
+        except Exception as e:
+            self.logger.log_error(e, "ログ削除")
+            self.show_error("ログ削除エラー", f"ログ削除中にエラーが発生しました: {str(e)}")
+    
+    def edit_template(self):
+        """テンプレート編集"""
+        try:
+            # テンプレート編集ダイアログを開く
+            self.template_selector_widget.open_template_editor()
+            self.tab_widget.setCurrentIndex(1)  # テンプレート選択タブに切り替え
+            self.status_label.setText("テンプレート編集モードに切り替えました")
+            
+        except Exception as e:
+            self.logger.log_error(e, "テンプレート編集")
+            self.show_error("テンプレート編集エラー", f"テンプレート編集中にエラーが発生しました: {str(e)}")
+    
+    def manage_snippets(self):
+        """定型文管理"""
+        try:
+            # 定型文管理ダイアログを開く
+            self.log_input_widget.open_snippet_manager()
+            self.tab_widget.setCurrentIndex(0)  # ログ入力タブに切り替え
+            self.status_label.setText("定型文管理を開きました")
+            
+        except Exception as e:
+            self.logger.log_error(e, "定型文管理")
+            self.show_error("定型文管理エラー", f"定型文管理中にエラーが発生しました: {str(e)}")
+
+    def open_chatgpt_settings(self):
+        """ChatGPT設定を開く"""
+        try:
+            from gui.dialogs.chatgpt_settings import ChatGPTSettingsDialog
+            
+            dialog = ChatGPTSettingsDialog(self.app_dir / "config", self.logger, self)
+            
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                # ChatGPT設定が保存された場合、要約ウィジェットに反映
+                chatgpt_summarizer = dialog.get_chatgpt_summarizer()
+                self.summary_view_widget.set_chatgpt_summarizer(chatgpt_summarizer)
+                
+                self.logger.log_operation("ChatGPT設定更新完了")
+                self.show_info("設定更新", "ChatGPT設定を更新しました")
+                
+        except ImportError:
+            # ChatGPT設定ダイアログが未実装の場合
+            QMessageBox.information(self, "ChatGPT設定", "ChatGPT設定機能は未実装です。")
+        except Exception as e:
+            self.logger.log_error(e, "ChatGPT設定")
+            self.show_error("ChatGPT設定エラー", f"ChatGPT設定中にエラーが発生しました: {str(e)}") 

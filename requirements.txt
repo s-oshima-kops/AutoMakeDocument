@@ -27,4 +27,5 @@ llama-cpp-python==0.2.23
 
 # ユーティリティ
 python-dateutil==2.8.2
-chardet==5.2.0 
+chardet==5.2.0
+requests==2.31.0  # ChatGPT API連携 
