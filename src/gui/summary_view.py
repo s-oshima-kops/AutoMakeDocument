@@ -380,7 +380,7 @@ class SummaryViewWidget(QWidget):
             end_date = self.end_date_edit.date().toPython()
             
             # ログを取得
-            self.current_logs = self.data_manager.get_logs_by_date_range(start_date, end_date)
+            self.current_logs = self.data_manager.get_work_logs_by_date_range(start_date, end_date)
             
             if not self.current_logs:
                 self.logger.log_warning("指定期間にログが見つかりません")

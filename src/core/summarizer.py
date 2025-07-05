@@ -347,4 +347,38 @@ class Summarizer:
                 "compression_ratio": summary_result.compression_ratio
             },
             "created_at": summary_result.created_at
-        } 
+        }
+    
+    def summarize_text(self, text: str, sentences_count: int = 5, method: str = "textrank") -> str:
+        """
+        テキストから要約を生成
+        
+        Args:
+            text: 要約対象テキスト
+            sentences_count: 要約文の数
+            method: 要約手法
+            
+        Returns:
+            str: 要約テキスト
+        """
+        try:
+            summary_sentences = self._extract_summary(text, method, sentences_count)
+            return "\n".join(summary_sentences)
+        except Exception as e:
+            return f"要約の生成中にエラーが発生しました: {str(e)}"
+    
+    def extract_keywords(self, text: str, top_k: int = 10) -> List[str]:
+        """
+        テキストからキーワードを抽出
+        
+        Args:
+            text: 処理対象テキスト
+            top_k: 抽出するキーワード数
+            
+        Returns:
+            List[str]: キーワードリスト
+        """
+        try:
+            return self._extract_key_points(text, top_k)
+        except Exception as e:
+            return [f"キーワード抽出エラー: {str(e)}"] 
