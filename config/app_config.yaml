@@ -1,0 +1,12 @@
+app_name: ドキュメント自動要約&作成アプリ
+version: 1.0.0
+language: ja
+theme: default
+window:
+  width: 1200
+  height: 800
+  resizable: true
+logging:
+  level: INFO
+  max_size: 10MB
+  backup_count: 5

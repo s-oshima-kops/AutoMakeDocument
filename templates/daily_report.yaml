@@ -1,0 +1,95 @@
+id: daily_report
+name: 日報
+description: 日次の作業報告書テンプレート
+output_format: text
+created_at: "2024-01-01T00:00:00"
+updated_at: "2024-01-01T00:00:00"
+
+sections:
+  - name: header
+    title: 基本情報
+    order: 1
+    visible: true
+    fields:
+      - name: report_date
+        type: date
+        required: true
+        description: 報告日
+      - name: reporter_name
+        type: text
+        required: true
+        description: 報告者名
+      - name: department
+        type: text
+        required: false
+        description: 部署名
+
+  - name: work_summary
+    title: 作業概要
+    order: 2
+    visible: true
+    fields:
+      - name: summary
+        type: summary
+        required: true
+        description: 本日の作業要約
+      - name: key_points
+        type: list
+        required: false
+        description: 重要なポイント
+
+  - name: achievements
+    title: 本日の成果
+    order: 3
+    visible: true
+    fields:
+      - name: completed_tasks
+        type: list
+        required: false
+        description: 完了したタスク
+      - name: progress_made
+        type: text
+        required: false
+        description: 進捗状況
+
+  - name: issues
+    title: 課題・問題点
+    order: 4
+    visible: true
+    fields:
+      - name: current_issues
+        type: list
+        required: false
+        description: 現在の課題
+      - name: solutions
+        type: text
+        required: false
+        description: 解決策・対応方針
+
+  - name: next_actions
+    title: 明日の予定
+    order: 5
+    visible: true
+    fields:
+      - name: tomorrow_tasks
+        type: list
+        required: false
+        description: 明日のタスク
+      - name: priorities
+        type: text
+        required: false
+        description: 重要度・優先順位
+
+  - name: notes
+    title: 備考・連絡事項
+    order: 6
+    visible: true
+    fields:
+      - name: additional_notes
+        type: text
+        required: false
+        description: その他の備考
+      - name: requests
+        type: text
+        required: false
+        description: 依頼事項・相談事項 

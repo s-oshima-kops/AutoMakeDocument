@@ -1,0 +1,135 @@
+id: weekly_report
+name: 週報
+description: 週次の作業報告書テンプレート
+output_format: text
+created_at: "2024-01-01T00:00:00"
+updated_at: "2024-01-01T00:00:00"
+
+sections:
+  - name: header
+    title: 基本情報
+    order: 1
+    visible: true
+    fields:
+      - name: week_start_date
+        type: date
+        required: true
+        description: 週開始日
+      - name: week_end_date
+        type: date
+        required: true
+        description: 週終了日
+      - name: reporter_name
+        type: text
+        required: true
+        description: 報告者名
+      - name: department
+        type: text
+        required: false
+        description: 部署名
+
+  - name: summary
+    title: 今週の要約
+    order: 2
+    visible: true
+    fields:
+      - name: weekly_summary
+        type: summary
+        required: true
+        description: 今週の作業要約
+      - name: key_achievements
+        type: list
+        required: false
+        description: 主な成果
+
+  - name: completed_work
+    title: 完了した作業
+    order: 3
+    visible: true
+    fields:
+      - name: completed_tasks
+        type: list
+        required: false
+        description: 完了したタスク
+      - name: deliverables
+        type: list
+        required: false
+        description: 成果物・納品物
+
+  - name: ongoing_work
+    title: 進行中の作業
+    order: 4
+    visible: true
+    fields:
+      - name: ongoing_tasks
+        type: list
+        required: false
+        description: 継続中のタスク
+      - name: progress_status
+        type: text
+        required: false
+        description: 進捗状況
+
+  - name: issues_challenges
+    title: 課題・問題点
+    order: 5
+    visible: true
+    fields:
+      - name: current_issues
+        type: list
+        required: false
+        description: 発生した課題
+      - name: blockers
+        type: list
+        required: false
+        description: 阻害要因
+      - name: solutions
+        type: text
+        required: false
+        description: 解決策・対応方針
+
+  - name: next_week_plan
+    title: 来週の計画
+    order: 6
+    visible: true
+    fields:
+      - name: next_week_tasks
+        type: list
+        required: false
+        description: 来週のタスク
+      - name: priorities
+        type: list
+        required: false
+        description: 重要度・優先順位
+      - name: deadlines
+        type: text
+        required: false
+        description: 締切・マイルストーン
+
+  - name: metrics
+    title: 実績・指標
+    order: 7
+    visible: true
+    fields:
+      - name: time_spent
+        type: text
+        required: false
+        description: 作業時間
+      - name: productivity_metrics
+        type: text
+        required: false
+        description: 生産性指標
+
+  - name: notes
+    title: 備考・連絡事項
+    order: 8
+    visible: true
+    fields:
+      - name: additional_notes
+        type: text
+        required: false
+        description: その他の備考
+      - name: requests
+        type: text
+        required: false
+        description: 依頼事項・相談事項 

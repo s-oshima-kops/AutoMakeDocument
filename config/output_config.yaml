@@ -1,0 +1,19 @@
+formats:
+  txt:
+    extension: .txt
+    encoding: utf-8
+    enabled: true
+  csv:
+    extension: .csv
+    encoding: utf-8
+    delimiter: ','
+    enabled: true
+  xlsx:
+    extension: .xlsx
+    sheet_name: 要約レポート
+    enabled: true
+  docx:
+    extension: .docx
+    font_name: 游ゴシック
+    font_size: 11
+    enabled: true

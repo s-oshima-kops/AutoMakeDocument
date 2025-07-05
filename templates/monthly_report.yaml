@@ -1,0 +1,161 @@
+id: monthly_report
+name: 月報
+description: 月次の作業報告書テンプレート
+output_format: text
+created_at: "2024-01-01T00:00:00"
+updated_at: "2024-01-01T00:00:00"
+
+sections:
+  - name: header
+    title: 基本情報
+    order: 1
+    visible: true
+    fields:
+      - name: report_month
+        type: text
+        required: true
+        description: 報告月（例：2024年1月）
+      - name: reporter_name
+        type: text
+        required: true
+        description: 報告者名
+      - name: department
+        type: text
+        required: false
+        description: 部署名
+
+  - name: monthly_summary
+    title: 今月の要約
+    order: 2
+    visible: true
+    fields:
+      - name: summary
+        type: summary
+        required: true
+        description: 今月の作業要約
+      - name: key_achievements
+        type: list
+        required: false
+        description: 主な成果・達成事項
+
+  - name: completed_projects
+    title: 完了したプロジェクト
+    order: 3
+    visible: true
+    fields:
+      - name: completed_projects
+        type: list
+        required: false
+        description: 完了したプロジェクト
+      - name: deliverables
+        type: list
+        required: false
+        description: 成果物・納品物
+      - name: customer_feedback
+        type: text
+        required: false
+        description: 顧客・関係者からの評価
+
+  - name: ongoing_projects
+    title: 進行中のプロジェクト
+    order: 4
+    visible: true
+    fields:
+      - name: ongoing_projects
+        type: list
+        required: false
+        description: 継続中のプロジェクト
+      - name: progress_status
+        type: text
+        required: false
+        description: 進捗状況
+      - name: planned_completion
+        type: text
+        required: false
+        description: 完了予定
+
+  - name: performance_metrics
+    title: 実績・指標
+    order: 5
+    visible: true
+    fields:
+      - name: quantitative_results
+        type: text
+        required: false
+        description: 定量的な成果
+      - name: qualitative_results
+        type: text
+        required: false
+        description: 定性的な成果
+      - name: time_allocation
+        type: text
+        required: false
+        description: 時間配分
+
+  - name: challenges_issues
+    title: 課題・問題点
+    order: 6
+    visible: true
+    fields:
+      - name: major_challenges
+        type: list
+        required: false
+        description: 主な課題
+      - name: lessons_learned
+        type: text
+        required: false
+        description: 学んだこと・改善点
+      - name: risk_factors
+        type: text
+        required: false
+        description: リスク要因
+
+  - name: next_month_plan
+    title: 来月の計画
+    order: 7
+    visible: true
+    fields:
+      - name: next_month_goals
+        type: list
+        required: false
+        description: 来月の目標
+      - name: planned_projects
+        type: list
+        required: false
+        description: 予定しているプロジェクト
+      - name: resource_needs
+        type: text
+        required: false
+        description: 必要なリソース
+
+  - name: skill_development
+    title: スキル開発・学習
+    order: 8
+    visible: true
+    fields:
+      - name: learning_activities
+        type: list
+        required: false
+        description: 学習活動
+      - name: skill_improvements
+        type: text
+        required: false
+        description: スキル向上
+      - name: training_needs
+        type: text
+        required: false
+        description: 今後の研修ニーズ
+
+  - name: notes
+    title: 備考・連絡事項
+    order: 9
+    visible: true
+    fields:
+      - name: additional_notes
+        type: text
+        required: false
+        description: その他の備考
+      - name: requests
+        type: text
+        required: false
+        description: 依頼事項・相談事項 

@@ -1,0 +1,21 @@
+templates:
+- id: daily_report
+  name: 日報
+  file: daily_report.yaml
+  description: 日次の作業報告書
+- id: weekly_report
+  name: 週報
+  file: weekly_report.yaml
+  description: 週次の作業報告書
+- id: monthly_report
+  name: 月報
+  file: monthly_report.yaml
+  description: 月次の作業報告書
+- id: business_report
+  name: 業務報告書
+  file: business_report.yaml
+  description: 業務報告書
+- id: progress_report
+  name: 進捗報告書
+  file: progress_report.yaml
+  description: 進捗報告書
