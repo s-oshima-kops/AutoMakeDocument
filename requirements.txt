@@ -2,13 +2,6 @@
 PySide6==6.6.1
 tkinter-tooltip==2.1.0
 
-# 要約・自然言語処理
-sumy==0.11.0
-mecab-python3==1.0.6
-janome==0.4.2
-scikit-learn==1.3.2
-networkx==3.2.1
-
 # ファイル出力
 openpyxl==3.1.2
 python-docx==1.1.0
@@ -16,14 +9,10 @@ xlsxwriter==3.1.9
 
 # データ処理
 pandas==2.1.4
-numpy==1.24.4
 pyyaml==6.0.1
 
 # 実行ファイル作成
 pyinstaller==6.2.0
-
-# ローカルLLM（オプション）
-llama-cpp-python==0.2.23
 
 # ユーティリティ
 python-dateutil==2.8.2

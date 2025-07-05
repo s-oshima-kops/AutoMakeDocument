@@ -1,6 +1,6 @@
 id: progress_report
 name: 進捗報告書
-description: プロジェクト進捗報告書テンプレート
+description: シンプルなプロジェクト進捗報告書テンプレート
 output_format: text
 created_at: "2024-01-01T00:00:00"
 updated_at: "2024-01-01T00:00:00"
@@ -13,183 +13,71 @@ sections:
     fields:
       - name: project_name
         type: text
-        required: true
+        required: false
         description: プロジェクト名
-      - name: report_date
+        default: "プロジェクト名未設定"
+      - name: period_start
         type: date
         required: true
-        description: 報告日
-      - name: reporting_period
-        type: text
+        description: 期間開始日
+      - name: period_end
+        type: date
         required: true
-        description: 報告期間
-      - name: project_manager
-        type: text
-        required: true
-        description: プロジェクトマネージャー
-      - name: team_members
+        description: 期間終了日
+      - name: reporter_name
         type: text
         required: false
-        description: チームメンバー
+        description: 報告者名
+        default: "報告者名未設定"
+      - name: report_date
+        type: datetime
+        required: true
+        description: 作成日時
 
   - name: summary
-    title: 進捗要約
+    title: 進捗報告
     order: 2
     visible: true
     fields:
       - name: progress_summary
         type: summary
         required: true
-        description: 進捗要約
-      - name: overall_status
-        type: text
-        required: false
-        description: 全体ステータス
-      - name: completion_percentage
-        type: text
-        required: false
-        description: 完了率
+        description: 進捗報告
 
   - name: achievements
-    title: 達成事項
+    title: 完了・成果
     order: 3
     visible: true
     fields:
-      - name: completed_milestones
+      - name: completed_items
         type: list
         required: false
-        description: 完了したマイルストーン
-      - name: delivered_components
+        description: 完了したタスク・成果物
+      - name: achievements
         type: list
         required: false
-        description: 納品した成果物
-      - name: key_achievements
-        type: text
-        required: false
-        description: 主な成果
+        description: 主な成果・達成事項
 
-  - name: current_activities
-    title: 現在の活動
+  - name: next_actions
+    title: 今後の予定
     order: 4
     visible: true
     fields:
-      - name: ongoing_tasks
+      - name: upcoming_tasks
         type: list
         required: false
-        description: 進行中のタスク
-      - name: team_assignments
+        description: 今後のタスク・マイルストーン
+      - name: important_deadlines
         type: text
         required: false
-        description: チーム割り当て
-      - name: current_focus
-        type: text
-        required: false
-        description: 現在の重点項目
+        description: 重要な期限・予定
 
-  - name: schedule_status
-    title: スケジュール状況
+  - name: notes
+    title: 備考
     order: 5
     visible: true
     fields:
-      - name: schedule_adherence
+      - name: additional_notes
         type: text
         required: false
-        description: スケジュール遵守状況
-      - name: upcoming_milestones
-        type: list
-        required: false
-        description: 今後のマイルストーン
-      - name: critical_path
-        type: text
-        required: false
-        description: クリティカルパス
-
-  - name: risks_issues
-    title: リスク・課題
-    order: 6
-    visible: true
-    fields:
-      - name: identified_risks
-        type: list
-        required: false
-        description: 特定されたリスク
-      - name: current_issues
-        type: list
-        required: false
-        description: 現在の課題
-      - name: mitigation_actions
-        type: text
-        required: false
-        description: 軽減策・対応策
-
-  - name: quality_status
-    title: 品質状況
-    order: 7
-    visible: true
-    fields:
-      - name: quality_metrics
-        type: text
-        required: false
-        description: 品質指標
-      - name: testing_results
-        type: text
-        required: false
-        description: テスト結果
-      - name: quality_issues
-        type: text
-        required: false
-        description: 品質課題
-
-  - name: budget_status
-    title: 予算状況
-    order: 8
-    visible: true
-    fields:
-      - name: budget_consumption
-        type: text
-        required: false
-        description: 予算消化状況
-      - name: cost_variance
-        type: text
-        required: false
-        description: コスト差異
-      - name: budget_forecast
-        type: text
-        required: false
-        description: 予算予測
-
-  - name: next_actions
-    title: 次期アクション
-    order: 9
-    visible: true
-    fields:
-      - name: next_period_tasks
-        type: list
-        required: false
-        description: 次期タスク
-      - name: decisions_needed
-        type: list
-        required: false
-        description: 必要な意思決定
-      - name: support_required
-        type: text
-        required: false
-        description: 必要なサポート
-
-  - name: communication
-    title: コミュニケーション
-    order: 10
-    visible: true
-    fields:
-      - name: stakeholder_updates
-        type: text
-        required: false
-        description: ステークホルダー更新
-      - name: team_communication
-        type: text
-        required: false
-        description: チーム内コミュニケーション
-      - name: external_communication
-        type: text
-        required: false
-        description: 外部コミュニケーション 
+        description: 課題・リスク・連絡事項 

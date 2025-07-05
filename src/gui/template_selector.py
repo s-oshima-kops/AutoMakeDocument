@@ -57,35 +57,71 @@ class TemplatePreviewWidget(QWidget):
                 preview_lines.append(f"  ・{fmt}")
             preview_lines.append("")
         
-        # フィールド定義
-        fields = template_info.get('fields', [])
-        if fields:
-            preview_lines.append("■ フィールド定義")
-            for field in fields:
-                field_name = field.get('name', '')
-                field_type = field.get('type', '')
-                field_desc = field.get('description', '')
-                required = "必須" if field.get('required', False) else "任意"
-                
-                preview_lines.append(f"【{field_name}】 ({field_type}, {required})")
-                if field_desc:
-                    preview_lines.append(f"  {field_desc}")
-                preview_lines.append("")
-        
-        # セクション定義
+        # セクション構成（実際の出力形式に近い形で表示）
         sections = template_info.get('sections', [])
         if sections:
-            preview_lines.append("■ セクション構成")
-            for section in sections:
-                section_name = section.get('name', '')
-                section_desc = section.get('description', '')
+            preview_lines.append("■ 出力イメージ")
+            preview_lines.append("")
+            
+            # テンプレート名をヘッダーとして表示
+            preview_lines.append(f"# {template_info.get('name', 'レポート')}")
+            preview_lines.append("作成日時: [生成時刻]")
+            preview_lines.append("")
+            
+            # セクションを順序でソート
+            sorted_sections = sorted(sections, key=lambda x: x.get('order', 0))
+            
+            for section in sorted_sections:
+                section_title = section.get('title', section.get('name', ''))
                 
-                preview_lines.append(f"【{section_name}】")
-                if section_desc:
-                    preview_lines.append(f"  {section_desc}")
+                # セクションタイトルを ## 形式で表示
+                preview_lines.append(f"## {section_title}")
+                preview_lines.append("")
+                
+                # フィールドを表示
+                fields = section.get('fields', [])
+                for field in fields:
+                    field_name = field.get('name', '')
+                    field_desc = field.get('description', '')
+                    required = " (必須)" if field.get('required', False) else ""
+                    
+                    # フィールド名を日本語表示名に変換
+                    display_name = self._get_field_display_name(field_name)
+                    preview_lines.append(f"{display_name}: [{field_desc}{required}]")
+                
                 preview_lines.append("")
         
         self.preview_text.setPlainText("\n".join(preview_lines))
+    
+    def _get_field_display_name(self, field_name: str) -> str:
+        """フィールド名を日本語表示名に変換"""
+        display_names = {
+            'period_start': '期間開始日',
+            'period_end': '期間終了日',
+            'reporter_name': '報告者名',
+            'report_date': '作成日時',
+            'summary_text': '要約',
+            'key_points': '重要ポイント',
+            'daily_details': '作業内容',
+            'completed_items': '完了した作業',
+            'progress_items': '進行中の作業',
+            'upcoming_tasks': '今後の予定',
+            'important_deadlines': '重要な期限',
+            'additional_notes': '備考',
+            'weekly_summary': '週間要約',
+            'daily_summary': '日次要約',
+            'monthly_summary': '月間要約',
+            'work_content': '作業内容',
+            'achievements': '成果',
+            'issues': '課題',
+            'tomorrow_plan': '明日の予定',
+            'department': '部署',
+            'project_name': 'プロジェクト名',
+            'target_date': '対象日',
+            'progress_summary': '進捗報告',
+            'report_title': '報告書タイトル'
+        }
+        return display_names.get(field_name, field_name)
 
 class TemplateConfigWidget(QWidget):
     """テンプレート設定ウィジェット"""
@@ -295,9 +331,58 @@ class TemplateSelectorWidget(QWidget):
         self.current_template_id = template_id
         
         if template_id in self.templates:
+            # 基本情報を取得
             template_info = self.templates[template_id]
-            self.preview_widget.set_template_info(template_info)
-            self.config_widget.set_template(template_info)
+            
+            # 詳細情報を取得（実際のテンプレートファイルから）
+            try:
+                template_obj = self.template_engine.load_template(template_id)
+                if template_obj:
+                    # テンプレートオブジェクトから詳細情報を抽出
+                    detailed_info = {
+                        'id': template_obj.id,
+                        'name': template_obj.name,
+                        'description': template_obj.description,
+                        'output_format': template_obj.output_format,
+                        'sections': []
+                    }
+                    
+                    # セクション情報を追加
+                    for section in template_obj.sections:
+                        section_info = {
+                            'name': section.name,
+                            'title': section.title,
+                            'order': section.order,
+                            'visible': section.visible,
+                            'fields': []
+                        }
+                        
+                        # フィールド情報を追加
+                        for field in section.fields:
+                            field_info = {
+                                'name': field.name,
+                                'type': field.type,
+                                'required': field.required,
+                                'default': field.default,
+                                'description': field.description
+                            }
+                            section_info['fields'].append(field_info)
+                        
+                        detailed_info['sections'].append(section_info)
+                    
+                    self.preview_widget.set_template_info(detailed_info)
+                    self.config_widget.set_template(detailed_info)
+                else:
+                    # テンプレートが読み込めない場合は基本情報のみ
+                    self.preview_widget.set_template_info(template_info)
+                    self.config_widget.set_template(template_info)
+                    
+            except Exception as e:
+                self.logger.log_error(f"テンプレート詳細情報取得エラー: {e}")
+                # エラーの場合は基本情報のみ
+                self.preview_widget.set_template_info(template_info)
+                self.config_widget.set_template(template_info)
+            
             self.select_button.setEnabled(True)
             
     def select_template(self):
@@ -399,4 +484,15 @@ class TemplateSelectorWidget(QWidget):
             return None, None
             
         config = self.config_widget.get_config()
-        return self.current_template_id, config 
+        return self.current_template_id, config
+    
+    def copy_text(self):
+        """プレビューテキストをクリップボードにコピー"""
+        if hasattr(self.preview_widget, 'preview_text'):
+            self.preview_widget.preview_text.selectAll()
+            self.preview_widget.preview_text.copy()
+    
+    def paste_text(self):
+        """クリップボードからテキストを貼り付け（テンプレートセレクターでは無効）"""
+        # テンプレートセレクターではペースト機能は無効
+        pass 

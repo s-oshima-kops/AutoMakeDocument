@@ -420,4 +420,25 @@ class LogInputWidget(QWidget):
     def new_log(self):
         """新規ログ作成"""
         self.go_today()
-        self.content_edit.setFocus() 
+        self.content_edit.setFocus()
+    
+    def copy_text(self):
+        """現在のテキストをクリップボードにコピー"""
+        if self.content_edit.hasFocus():
+            self.content_edit.copy()
+        elif self.tag_input.hasFocus():
+            self.tag_input.copy()
+        else:
+            # フォーカスがない場合は作業内容全体をコピー
+            self.content_edit.selectAll()
+            self.content_edit.copy()
+    
+    def paste_text(self):
+        """クリップボードからテキストを貼り付け"""
+        if self.content_edit.hasFocus():
+            self.content_edit.paste()
+        elif self.tag_input.hasFocus():
+            self.tag_input.paste()
+        else:
+            # フォーカスがない場合は作業内容エリアに貼り付け
+            self.content_edit.paste() 

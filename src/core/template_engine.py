@@ -250,9 +250,10 @@ class TemplateEngine:
             'weekly_summary': 'summary_text',
             'summary_text': 'summary_text',
             'keywords': 'keywords',
+            'key_points': 'key_points',
             'generated_at': 'generated_at',
             'creation_date': 'generated_at',
-            'report_date': 'generated_at',
+            'report_date': 'report_date',
             'daily_summary': 'summary_text',
             'monthly_summary': 'summary_text',
             'key_achievements': 'summary_text',
@@ -261,7 +262,14 @@ class TemplateEngine:
             'project_summary': 'summary_text',
             'activity_summary': 'summary_text',
             'progress_summary': 'summary_text',
-            'achievement_summary': 'summary_text'
+            'achievement_summary': 'summary_text',
+            'daily_details': 'daily_details',
+            'period_start': 'period_start',
+            'period_end': 'period_end',
+            'target_date': 'period_start',  # 日報の対象日は期間開始日を使用
+            'reporter_name': 'reporter_name',
+            'completed_items': 'completed_items',
+            'progress_items': 'progress_items'
         }
         
         # マッピングがあれば使用、なければ元のフィールド名を使用
@@ -273,12 +281,14 @@ class TemplateEngine:
         # 必須フィールドで値がない場合、デフォルト値を設定
         if field.required and (value is None or value == ""):
             # 特定のフィールドにはデフォルト値を設定
-            if field.name in ['week_start_date', 'week_end_date']:
+            if field.name in ['week_start_date', 'week_end_date', 'period_start', 'period_end', 'target_date']:
                 return "指定なし"
             elif field.name == 'reporter_name':
                 return "報告者名未設定"
             elif field.name == 'department':
                 return "部署未設定"
+            elif field.name == 'daily_details':
+                return "日別作業内容なし"
             else:
                 return f"[必須フィールド '{field.name}' が未入力です]"
         
@@ -311,6 +321,10 @@ class TemplateEngine:
                     return value["summary_text"]
                 elif "summary" in value:
                     return value["summary"]
+            return value
+        
+        elif field.type == "daily_content":
+            # 日別コンテンツの特別処理
             return value
         
         return value
@@ -349,10 +363,41 @@ class TemplateEngine:
             
             for field_name, field_value in section["content"].items():
                 if field_value is not None and field_value != "":
-                    lines.append(f"{field_name}: {field_value}")
+                    # フィールド名を日本語に変換
+                    display_name = self._get_field_display_name(field_name)
+                    lines.append(f"{display_name}: {field_value}")
                     lines.append("")
         
         return "\n".join(lines)
+    
+    def _get_field_display_name(self, field_name: str) -> str:
+        """フィールド名を日本語表示名に変換"""
+        display_names = {
+            'period_start': '期間開始日',
+            'period_end': '期間終了日',
+            'reporter_name': '報告者名',
+            'report_date': '作成日時',
+            'summary_text': '要約',
+            'key_points': '重要ポイント',
+            'daily_details': '作業内容',
+            'completed_items': '完了した作業',
+            'progress_items': '進行中の作業',
+            'upcoming_tasks': '今後の予定',
+            'important_deadlines': '重要な期限',
+            'additional_notes': '備考',
+            'weekly_summary': '週間要約',
+            'daily_summary': '日次要約',
+            'work_content': '作業内容',
+            'achievements': '成果',
+            'issues': '課題',
+            'tomorrow_plan': '明日の予定',
+            'department': '部署',
+            'project_name': 'プロジェクト名',
+            'target_date': '対象日',
+            'progress_summary': '進捗報告',
+            'report_title': '報告書タイトル'
+        }
+        return display_names.get(field_name, field_name)
     
     def _format_markdown(self, template_result: Dict[str, Any]) -> str:
         """Markdown形式で出力"""

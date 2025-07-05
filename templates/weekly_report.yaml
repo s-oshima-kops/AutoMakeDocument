@@ -1,6 +1,6 @@
 id: weekly_report
 name: 週報
-description: 週次の作業報告書テンプレート
+description: 日別作業内容を中心とした週次報告書テンプレート
 output_format: text
 created_at: "2024-01-01T00:00:00"
 updated_at: "2024-01-01T00:00:00"
@@ -11,125 +11,68 @@ sections:
     order: 1
     visible: true
     fields:
-      - name: week_start_date
+      - name: period_start
         type: date
         required: true
-        description: 週開始日
-      - name: week_end_date
+        description: 期間開始日
+      - name: period_end
         type: date
         required: true
-        description: 週終了日
+        description: 期間終了日
       - name: reporter_name
         type: text
-        required: true
-        description: 報告者名
-      - name: department
-        type: text
         required: false
-        description: 部署名
+        description: 報告者名
+        default: "報告者名未設定"
+      - name: report_date
+        type: datetime
+        required: true
+        description: 報告書作成日時
 
-  - name: summary
-    title: 今週の要約
+  - name: daily_work
+    title: 日別作業内容
     order: 2
     visible: true
     fields:
-      - name: weekly_summary
-        type: summary
+      - name: daily_details
+        type: daily_content
         required: true
-        description: 今週の作業要約
-      - name: key_achievements
-        type: list
-        required: false
-        description: 主な成果
+        description: 各日の作業内容
 
-  - name: completed_work
-    title: 完了した作業
+  - name: achievements
+    title: 主な成果
     order: 3
     visible: true
     fields:
-      - name: completed_tasks
+      - name: completed_items
         type: list
         required: false
-        description: 完了したタスク
-      - name: deliverables
+        description: 完了した作業・成果物
+      - name: progress_items
         type: list
         required: false
-        description: 成果物・納品物
+        description: 進捗があった項目
 
-  - name: ongoing_work
-    title: 進行中の作業
+  - name: next_actions
+    title: 今後の予定
     order: 4
     visible: true
     fields:
-      - name: ongoing_tasks
+      - name: upcoming_tasks
         type: list
         required: false
-        description: 継続中のタスク
-      - name: progress_status
+        description: 今後予定している作業
+      - name: important_deadlines
         type: text
         required: false
-        description: 進捗状況
-
-  - name: issues_challenges
-    title: 課題・問題点
-    order: 5
-    visible: true
-    fields:
-      - name: current_issues
-        type: list
-        required: false
-        description: 発生した課題
-      - name: blockers
-        type: list
-        required: false
-        description: 阻害要因
-      - name: solutions
-        type: text
-        required: false
-        description: 解決策・対応方針
-
-  - name: next_week_plan
-    title: 来週の計画
-    order: 6
-    visible: true
-    fields:
-      - name: next_week_tasks
-        type: list
-        required: false
-        description: 来週のタスク
-      - name: priorities
-        type: list
-        required: false
-        description: 重要度・優先順位
-      - name: deadlines
-        type: text
-        required: false
-        description: 締切・マイルストーン
-
-  - name: metrics
-    title: 実績・指標
-    order: 7
-    visible: true
-    fields:
-      - name: time_spent
-        type: text
-        required: false
-        description: 作業時間
-      - name: productivity_metrics
-        type: text
-        required: false
-        description: 生産性指標
+        description: 重要な期限・予定
 
   - name: notes
-    title: 備考・連絡事項
-    order: 8
+    title: 備考
+    order: 5
     visible: true
     fields:
       - name: additional_notes
         type: text
         required: false
-        description: その他の備考
-      - name: requests
-        type: text
-        required: false
-        description: 依頼事項・相談事項 
+        description: その他の連絡事項・備考 

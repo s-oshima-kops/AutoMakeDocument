@@ -10,3 +10,12 @@ logging:
   level: INFO
   max_size: 10MB
   backup_count: 5
+template_selection:
+  last_selected: weekly_report
+  config:
+    output_format: txt
+    summary_level: 3
+    max_chars: 2000
+    extract_keywords: true
+    include_stats: true
+    use_llm: false

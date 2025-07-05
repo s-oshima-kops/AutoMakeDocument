@@ -1,6 +1,6 @@
 id: business_report
 name: 業務報告書
-description: 業務報告書テンプレート
+description: シンプルな業務報告書テンプレート
 output_format: text
 created_at: "2024-01-01T00:00:00"
 updated_at: "2024-01-01T00:00:00"
@@ -13,171 +13,71 @@ sections:
     fields:
       - name: report_title
         type: text
-        required: true
+        required: false
         description: 報告書タイトル
-      - name: report_date
+        default: "業務報告書"
+      - name: period_start
         type: date
         required: true
-        description: 報告日
+        description: 期間開始日
+      - name: period_end
+        type: date
+        required: true
+        description: 期間終了日
       - name: reporter_name
         type: text
-        required: true
+        required: false
         description: 報告者名
-      - name: department
-        type: text
-        required: false
-        description: 部署名
-      - name: recipients
-        type: text
-        required: false
-        description: 宛先
+        default: "報告者名未設定"
+      - name: report_date
+        type: datetime
+        required: true
+        description: 作成日時
 
   - name: executive_summary
-    title: 要約
+    title: 報告内容
     order: 2
     visible: true
     fields:
-      - name: summary
+      - name: summary_text
         type: summary
         required: true
         description: 業務要約
-      - name: key_points
-        type: list
-        required: false
-        description: 重要なポイント
 
-  - name: objectives
-    title: 目的・目標
+  - name: results
+    title: 実施内容・成果
     order: 3
     visible: true
     fields:
-      - name: business_objectives
-        type: text
-        required: false
-        description: 業務目的
-      - name: success_criteria
+      - name: completed_items
         type: list
         required: false
-        description: 成功基準
+        description: 実施した業務・活動
+      - name: achievements
+        type: list
+        required: false
+        description: 達成した成果・結果
 
-  - name: activities
-    title: 実施した活動
+  - name: recommendations
+    title: 提言・今後の方針
     order: 4
     visible: true
     fields:
-      - name: main_activities
+      - name: upcoming_tasks
         type: list
         required: false
-        description: 主な活動
-      - name: methodologies
+        description: 今後の予定・改善事項
+      - name: important_deadlines
         type: text
         required: false
-        description: 手法・アプローチ
-      - name: timeline
-        type: text
-        required: false
-        description: 実施スケジュール
+        description: 重要な期限・スケジュール
 
-  - name: results
-    title: 結果・成果
+  - name: notes
+    title: 備考
     order: 5
     visible: true
     fields:
-      - name: achieved_results
-        type: list
-        required: false
-        description: 達成した結果
-      - name: deliverables
-        type: list
-        required: false
-        description: 成果物
-      - name: metrics
-        type: text
-        required: false
-        description: 評価指標・数値
-
-  - name: analysis
-    title: 分析・考察
-    order: 6
-    visible: true
-    fields:
-      - name: analysis_results
-        type: text
-        required: false
-        description: 分析結果
-      - name: insights
-        type: text
-        required: false
-        description: 洞察・気づき
-      - name: implications
-        type: text
-        required: false
-        description: 影響・意義
-
-  - name: challenges
-    title: 課題・問題点
-    order: 7
-    visible: true
-    fields:
-      - name: encountered_challenges
-        type: list
-        required: false
-        description: 発生した課題
-      - name: root_causes
-        type: text
-        required: false
-        description: 根本原因
-      - name: impact_assessment
-        type: text
-        required: false
-        description: 影響評価
-
-  - name: recommendations
-    title: 提言・改善策
-    order: 8
-    visible: true
-    fields:
-      - name: recommendations
-        type: list
-        required: false
-        description: 提言・推奨事項
-      - name: improvement_plans
-        type: text
-        required: false
-        description: 改善計画
-      - name: next_steps
-        type: list
-        required: false
-        description: 次のステップ
-
-  - name: resources
-    title: 資源・コスト
-    order: 9
-    visible: true
-    fields:
-      - name: resource_utilization
-        type: text
-        required: false
-        description: 資源活用状況
-      - name: cost_analysis
-        type: text
-        required: false
-        description: コスト分析
-      - name: budget_variance
-        type: text
-        required: false
-        description: 予算差異
-
-  - name: appendix
-    title: 付録・参考資料
-    order: 10
-    visible: true
-    fields:
-      - name: supporting_documents
-        type: list
-        required: false
-        description: 参考資料
       - name: additional_notes
         type: text
         required: false
-        description: その他の備考 
+        description: 課題・問題点・その他 

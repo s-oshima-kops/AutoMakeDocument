@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
                              QFileDialog, QTextEdit, QCheckBox, QSpinBox,
                              QTabWidget, QTableWidget, QTableWidgetItem,
                              QProgressBar, QListWidget, QListWidgetItem,
-                             QMessageBox, QSplitter, QScrollArea)
+                             QMessageBox, QSplitter, QScrollArea, QDateEdit)
 from PySide6.QtCore import Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QFont
 
@@ -265,13 +265,14 @@ class OutputConfigWidget(QWidget):
     output_completed = Signal(str)  # file_path
     
     def __init__(self, template_engine: TemplateEngine, config_manager: ConfigManager,
-                 logger: Logger, app_dir: Path, parent=None):
+                 logger: Logger, app_dir: Path, data_manager=None, parent=None):
         super().__init__(parent)
         
         self.template_engine = template_engine
         self.config_manager = config_manager
         self.logger = logger
         self.app_dir = app_dir
+        self.data_manager = data_manager
         
         self.current_summary = None
         self.current_template_id = None
@@ -349,6 +350,44 @@ class OutputConfigWidget(QWidget):
         template_layout.addRow("", self.include_original_check)
         
         left_layout.addWidget(template_group)
+        
+        # 期間設定
+        period_group = QGroupBox("出力期間")
+        period_layout = QFormLayout(period_group)
+        
+        # 開始日
+        from PySide6.QtCore import QDate
+        from datetime import datetime, timedelta
+        
+        self.start_date_edit = QDateEdit()
+        self.start_date_edit.setDate(QDate.currentDate().addDays(-7))
+        self.start_date_edit.setCalendarPopup(True)
+        period_layout.addRow("開始日:", self.start_date_edit)
+        
+        # 終了日
+        self.end_date_edit = QDateEdit()
+        self.end_date_edit.setDate(QDate.currentDate())
+        self.end_date_edit.setCalendarPopup(True)
+        period_layout.addRow("終了日:", self.end_date_edit)
+        
+        # 期間プリセット
+        period_presets_layout = QHBoxLayout()
+        
+        today_button = QPushButton("今日")
+        today_button.clicked.connect(lambda: self.set_period_preset(0))
+        period_presets_layout.addWidget(today_button)
+        
+        week_button = QPushButton("過去7日")
+        week_button.clicked.connect(lambda: self.set_period_preset(7))
+        period_presets_layout.addWidget(week_button)
+        
+        month_button = QPushButton("過去30日")
+        month_button.clicked.connect(lambda: self.set_period_preset(30))
+        period_presets_layout.addWidget(month_button)
+        
+        period_layout.addRow("プリセット:", period_presets_layout)
+        
+        left_layout.addWidget(period_group)
         
         # 出力実行
         execute_group = QGroupBox("実行")
@@ -433,18 +472,17 @@ class OutputConfigWidget(QWidget):
             
     def preview_output(self):
         """出力をプレビュー"""
-        if not self.current_summary:
-            QMessageBox.warning(self, "警告", "要約データがありません。")
-            return
-            
         try:
             # 設定を取得
             config = self.get_output_config()
             template_id = self.template_combo.currentData()
             
+            # データを準備
+            template_data = self.prepare_template_data()
+            
             # テンプレートを適用
             template_result = self.template_engine.apply_template(
-                template_id, self.current_summary, config
+                template_id, template_data, config
             )
             
             # 結果を文字列形式に変換
@@ -457,13 +495,95 @@ class OutputConfigWidget(QWidget):
         except Exception as e:
             self.logger.log_error(f"プレビュー生成エラー: {e}")
             QMessageBox.critical(self, "エラー", f"プレビュー生成エラー: {e}")
+    
+    def prepare_template_data(self) -> Dict[str, Any]:
+        """テンプレート用データを準備"""
+        # 要約データがある場合はそれを使用
+        if self.current_summary:
+            return self.current_summary
+        
+        # 要約データがない場合は作業ログから作成
+        if not self.data_manager:
+            return {"summary_text": "データがありません", "key_points": []}
+        
+        try:
+            # 設定された期間で作業ログを取得
+            from datetime import datetime, timedelta
+            from utils.date_utils import DateUtils
+            
+            # 期間設定を取得
+            start_date = self.start_date_edit.date().toPython()
+            end_date = self.end_date_edit.date().toPython()
+            
+            logs = self.data_manager.get_work_logs_by_date_range(start_date, end_date)
+            
+            if not logs:
+                return {"summary_text": f"指定期間（{start_date}～{end_date}）に作業ログがありません", "key_points": []}
+            
+            # 作業ログから基本的なデータを作成
+            combined_content = []
+            daily_details = []
+            
+            for log in logs:
+                if log.content.strip():
+                    log_date = DateUtils.parse_date(log.date)
+                    if log_date:
+                        date_str = DateUtils.format_date_japanese(log_date)
+                        combined_content.append(f"【{date_str}】\n{log.content}")
+                        daily_details.append(f"■ {date_str}\n{log.content}")
+            
+            summary_text = "\n\n".join(combined_content)
+            daily_content = "\n\n".join(daily_details)
+            
+            # 簡単なキーポイント抽出
+            key_points = []
+            for log in logs:
+                if log.content.strip():
+                    # 短い文をキーポイントとして抽出
+                    sentences = log.content.split('。')
+                    for sentence in sentences:
+                        sentence = sentence.strip()
+                        if 10 <= len(sentence) <= 50:
+                            key_points.append(sentence)
+                            if len(key_points) >= 5:
+                                break
+                    if len(key_points) >= 5:
+                        break
+            
+            return {
+                "summary_text": summary_text,
+                "key_points": key_points,
+                "daily_details": daily_content,
+                "generated_at": datetime.now().isoformat(),
+                "report_date": datetime.now().isoformat(),
+                "method": "direct_log",
+                "period_start": DateUtils.format_date_japanese(start_date),
+                "period_end": DateUtils.format_date_japanese(end_date),
+                "reporter_name": "報告者名未設定",
+                "completed_items": key_points[:3] if len(key_points) > 3 else key_points,
+                "progress_items": key_points[3:] if len(key_points) > 3 else [],
+                "statistics": {
+                    "log_count": len(logs),
+                    "word_count": len(summary_text)
+                }
+            }
+            
+        except Exception as e:
+            self.logger.log_error(f"テンプレートデータ準備エラー: {e}")
+            return {"summary_text": "データの準備でエラーが発生しました", "key_points": []}
+    
+    def set_period_preset(self, days: int):
+        """期間プリセットを設定"""
+        from PySide6.QtCore import QDate
+        
+        end_date = QDate.currentDate()
+        start_date = end_date.addDays(-days)
+        
+        self.start_date_edit.setDate(start_date)
+        self.end_date_edit.setDate(end_date)
             
     def execute_output(self):
         """出力を実行"""
-        if not self.current_summary:
-            QMessageBox.warning(self, "警告", "要約データがありません。")
-            return
-            
         try:
             # 出力ファイルパスを構築
             output_folder = Path(self.output_folder_edit.text())
@@ -477,14 +597,17 @@ class OutputConfigWidget(QWidget):
             config = self.get_output_config()
             template_id = self.template_combo.currentData()
             
+            # データを準備
+            template_data = self.prepare_template_data()
+            
             # ワーカーを開始
-            self.start_output_worker(template_id, config, str(file_path))
+            self.start_output_worker(template_id, config, str(file_path), template_data)
             
         except Exception as e:
             self.logger.log_error(f"出力実行エラー: {e}")
             QMessageBox.critical(self, "エラー", f"出力実行エラー: {e}")
             
-    def start_output_worker(self, template_id: str, config: Dict[str, Any], file_path: str):
+    def start_output_worker(self, template_id: str, config: Dict[str, Any], file_path: str, template_data: Dict[str, Any]):
         """出力ワーカーを開始"""
         # UI状態を更新
         self.execute_button.setEnabled(False)
@@ -494,7 +617,7 @@ class OutputConfigWidget(QWidget):
         # ワーカーを作成
         self.worker = OutputWorker(
             self.template_engine,
-            self.current_summary,
+            template_data,
             template_id,
             config,
             file_path
@@ -633,4 +756,15 @@ class OutputConfigWidget(QWidget):
         
     def run_export(self):
         """出力を実行（エイリアス）"""
-        self.execute_output() 
+        self.execute_output()
+    
+    def copy_text(self):
+        """プレビューテキストをクリップボードにコピー"""
+        if hasattr(self, 'preview_widget') and hasattr(self.preview_widget, 'preview_text'):
+            self.preview_widget.preview_text.selectAll()
+            self.preview_widget.preview_text.copy()
+    
+    def paste_text(self):
+        """クリップボードからテキストを貼り付け（出力設定では無効）"""
+        # 出力設定ではペースト機能は無効
+        pass 

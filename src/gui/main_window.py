@@ -59,7 +59,7 @@ class MainWindow(QMainWindow):
     
     def setup_ui(self):
         """UI設定"""
-        self.setWindowTitle("ドキュメント自動要約&作成アプリ")
+        self.setWindowTitle("ドキュメント作成アプリ")
         
         # 中央ウィジェット
         central_widget = QWidget()
@@ -98,22 +98,23 @@ class MainWindow(QMainWindow):
         )
         self.tab_widget.addTab(self.template_selector_widget, "📋 テンプレート選択")
         
-        # 3. 要約表示タブ
-        self.summary_view_widget = SummaryViewWidget(
-            self.data_manager,
-            self.summarizer,
-            self.llm_processor,
-            self.config_manager,
-            self.logger
-        )
-        self.tab_widget.addTab(self.summary_view_widget, "📊 要約表示")
+        # 3. 要約表示タブ (無効化)
+        # self.summary_view_widget = SummaryViewWidget(
+        #     self.data_manager,
+        #     self.summarizer,
+        #     self.llm_processor,
+        #     self.config_manager,
+        #     self.logger
+        # )
+        # self.tab_widget.addTab(self.summary_view_widget, "📊 要約表示")
         
         # 4. 出力設定タブ
         self.output_config_widget = OutputConfigWidget(
             self.template_engine,
             self.config_manager,
             self.logger,
-            self.app_dir
+            self.app_dir,
+            self.data_manager
         )
         self.tab_widget.addTab(self.output_config_widget, "📤 出力設定")
     
@@ -169,11 +170,13 @@ class MainWindow(QMainWindow):
         # コピー
         copy_action = QAction("コピー(&C)", self)
         copy_action.setShortcut(QKeySequence.Copy)
+        copy_action.triggered.connect(self.copy_text)
         edit_menu.addAction(copy_action)
         
         # 貼り付け
         paste_action = QAction("貼り付け(&P)", self)
         paste_action.setShortcut(QKeySequence.Paste)
+        paste_action.triggered.connect(self.paste_text)
         edit_menu.addAction(paste_action)
         
         # 表示メニュー
@@ -236,15 +239,15 @@ class MainWindow(QMainWindow):
         # テンプレート選択ウィジェットのシグナル
         self.template_selector_widget.template_selected.connect(self.on_template_selected)
         
-        # 要約表示ウィジェットのシグナル
-        self.summary_view_widget.summary_generated.connect(self.on_summary_generated)
+        # 要約表示ウィジェットのシグナル（無効化）
+        # self.summary_view_widget.summary_generated.connect(self.on_summary_generated)
         
         # 出力設定ウィジェットのシグナル
         self.output_config_widget.output_completed.connect(self.on_output_completed)
         
         # ウィジェット間のデータ連携
         self.template_selector_widget.template_selected.connect(self.on_template_selected_for_output)
-        self.summary_view_widget.summary_generated.connect(self.on_summary_generated_for_output)
+        # self.summary_view_widget.summary_generated.connect(self.on_summary_generated_for_output)
     
     def load_settings(self):
         """設定を読み込み"""
@@ -321,14 +324,48 @@ class MainWindow(QMainWindow):
             self.showFullScreen()
     
     def run_summarization(self):
-        """要約実行"""
-        self.summary_view_widget.run_summarization()
-        self.tab_widget.setCurrentIndex(2)  # 要約表示タブに切り替え
+        """要約実行（無効化）"""
+        # self.summary_view_widget.run_summarization()
+        # self.tab_widget.setCurrentIndex(2)  # 要約表示タブに切り替え
+        QMessageBox.information(self, "要約機能", "要約機能は現在無効化されています。")
+        self.tab_widget.setCurrentIndex(2)  # 出力設定タブに切り替え
     
     def run_export(self):
         """出力実行"""
         self.output_config_widget.run_export()
-        self.tab_widget.setCurrentIndex(3)  # 出力設定タブに切り替え
+        self.tab_widget.setCurrentIndex(2)  # 出力設定タブに切り替え（要約タブ削除により番号変更）
+    
+    def copy_text(self):
+        """テキストをコピー"""
+        # 現在フォーカスのあるウィジェットがテキストエディタの場合はコピー
+        focused_widget = self.focusWidget()
+        if hasattr(focused_widget, 'copy'):
+            focused_widget.copy()
+        else:
+            # 現在のタブに応じて適切なウィジェットからコピー
+            current_tab = self.tab_widget.currentWidget()
+            if current_tab == self.log_input_widget:
+                self.log_input_widget.copy_text()
+            elif current_tab == self.template_selector_widget:
+                self.template_selector_widget.copy_text()
+            elif current_tab == self.output_config_widget:
+                self.output_config_widget.copy_text()
+    
+    def paste_text(self):
+        """テキストを貼り付け"""
+        # 現在フォーカスのあるウィジェットがテキストエディタの場合は貼り付け
+        focused_widget = self.focusWidget()
+        if hasattr(focused_widget, 'paste'):
+            focused_widget.paste()
+        else:
+            # 現在のタブに応じて適切なウィジェットに貼り付け
+            current_tab = self.tab_widget.currentWidget()
+            if current_tab == self.log_input_widget:
+                self.log_input_widget.paste_text()
+            elif current_tab == self.template_selector_widget:
+                self.template_selector_widget.paste_text()
+            elif current_tab == self.output_config_widget:
+                self.output_config_widget.paste_text()
     
     def show_about(self):
         """バージョン情報表示"""
@@ -347,7 +384,7 @@ class MainWindow(QMainWindow):
     
     def on_tab_changed(self, index):
         """タブ変更時の処理"""
-        tab_names = ["ログ入力", "テンプレート選択", "要約表示", "出力設定"]
+        tab_names = ["ログ入力", "テンプレート選択", "出力設定"]
         if 0 <= index < len(tab_names):
             self.status_label.setText(f"現在のタブ: {tab_names[index]}")
             self.logger.log_operation(f"タブ切り替え: {tab_names[index]}")
