@@ -16,9 +16,8 @@
 ## 🚀 クイックスタート
 
 ### 実行ファイル版（推奨）
-```
-dist\AutoMakeDocument.exe をダブルクリック
-```
+1. [Releases](https://github.com/s-oshima-kops/AutoMakeDocument/releases)から最新版の`AutoMakeDocument.exe`をダウンロード
+2. ダウンロードした`AutoMakeDocument.exe`をダブルクリック
 
 ### Python版
 ```bash
@@ -66,7 +65,7 @@ python main.py
 ### 実行ファイル版（推奨）
 
 1. **実行ファイルのダウンロード**
-   - `dist/AutoMakeDocument.exe`をダウンロード
+   - [Releases](https://github.com/s-oshima-kops/AutoMakeDocument/releases)から最新版の`AutoMakeDocument.exe`をダウンロード
    
 2. **実行ファイルの起動**
    ```

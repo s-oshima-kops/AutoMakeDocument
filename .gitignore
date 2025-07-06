@@ -146,7 +146,3 @@ Desktop.ini
 build/
 dist/
 *.spec
-# PyInstaller
-build/
-dist/
-*.spec
