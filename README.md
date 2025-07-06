@@ -16,8 +16,9 @@
 ## 🚀 クイックスタート
 
 ### 実行ファイル版（推奨）
-1. [Releases](https://github.com/s-oshima-kops/AutoMakeDocument/releases)から最新版の`AutoMakeDocument.exe`をダウンロード
-2. ダウンロードした`AutoMakeDocument.exe`をダブルクリック
+1. [Releases](https://github.com/s-oshima-kops/AutoMakeDocument/releases)から最新版の`AutoMakeDocument.zip`をダウンロード
+2. ダウンロードした`AutoMakeDocument.zip`を任意のフォルダに展開
+3. 展開したフォルダ内の`AutoMakeDocument.exe`をダブルクリック
 
 ### Python版
 ```bash
@@ -55,7 +56,7 @@ python main.py
 | 項目 | 内容 |
 |------|------|
 | 対応OS | Windows 10 / 11 |
-| 実行形式 | 単体 `.exe` ファイル |
+| 実行形式 | ポータブル版（ZIP展開）|
 | ネットワーク | オフライン動作（完全ローカル） |
 | 外部依存 | なし（オープンソースライブラリのみ使用） |
 | 言語 | 日本語対応 |
@@ -64,10 +65,13 @@ python main.py
 
 ### 実行ファイル版（推奨）
 
-1. **実行ファイルのダウンロード**
-   - [Releases](https://github.com/s-oshima-kops/AutoMakeDocument/releases)から最新版の`AutoMakeDocument.exe`をダウンロード
+1. **ZIPファイルのダウンロード**
+   - [Releases](https://github.com/s-oshima-kops/AutoMakeDocument/releases)から最新版の`AutoMakeDocument.zip`をダウンロード
    
-2. **実行ファイルの起動**
+2. **ZIPファイルの展開**
+   - ダウンロードした`AutoMakeDocument.zip`を任意のフォルダに展開
+   
+3. **アプリケーションの起動**
    ```
    AutoMakeDocument.exe をダブルクリック
    ```
@@ -107,7 +111,34 @@ python build.py
 build.bat
 ```
 
-ビルド完了後、`dist/AutoMakeDocument.exe`が生成されます。
+ビルド完了後、以下のファイルが生成されます：
+- `dist/AutoMakeDocument.exe` - 実行ファイル
+- `dist/AutoMakeDocument.zip` - 配布用ZIPファイル
+- `dist/AutoMakeDocument/` - ポータブル版フォルダ
+
+## 配布方法
+
+### ポータブル版の特徴
+- **設定ファイル・テンプレートが同梱** - 追加ファイルのダウンロード不要
+- **フォルダ内で完結** - 展開したフォルダ内にすべてのデータが保存
+- **複数PC対応** - フォルダごとコピーして他のPCでも使用可能
+- **権限問題なし** - 書き込み権限の心配が不要
+
+### 配布用ZIPファイルの内容
+```
+AutoMakeDocument/
+├── AutoMakeDocument.exe    # 実行ファイル
+├── README.md              # 使用方法
+├── templates/             # レポートテンプレート
+│   ├── daily_report.yaml
+│   ├── weekly_report.yaml
+│   └── ...
+├── config/                # 設定ファイル
+│   ├── app_config.yaml
+│   └── ...
+└── data/                  # データ保存フォルダ（実行時に作成）
+    └── logs/
+```
 
 ## 使用方法
 

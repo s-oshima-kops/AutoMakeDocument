@@ -7,6 +7,7 @@
 import os
 import sys
 import shutil
+import zipfile
 from pathlib import Path
 import PyInstaller.__main__
 
@@ -26,9 +27,8 @@ def build_app():
         '--distpath=dist',
         '--workpath=build',
         '--specpath=build',
-        '--add-data=templates;templates',
-        '--add-data=config;config',
-        '--add-data=assets;assets',
+        f'--add-data={project_root}/templates;templates',
+        f'--add-data={project_root}/config;config',
         '--hidden-import=PySide6.QtWidgets',
         '--hidden-import=PySide6.QtCore',
         '--hidden-import=PySide6.QtGui',
@@ -65,10 +65,10 @@ def build_app():
         sys.exit(1)
 
 def create_distribution_folder():
-    """配布用フォルダを作成"""
+    """配布用フォルダとZIPファイルを作成"""
     project_root = Path(__file__).parent
     dist_dir = project_root / "dist"
-    portable_dir = dist_dir / "portable"
+    portable_dir = dist_dir / "AutoMakeDocument"
     
     # ポータブル版フォルダを作成
     if portable_dir.exists():
@@ -78,16 +78,15 @@ def create_distribution_folder():
     
     # 必要なファイルをコピー
     files_to_copy = [
-        ("dist/AutoMakeDocument.exe", "portable/AutoMakeDocument.exe"),
-        ("README.md", "portable/README.md"),
-        ("templates", "portable/templates"),
-        ("config", "portable/config"),
-        ("assets", "portable/assets")
+        ("dist/AutoMakeDocument.exe", "AutoMakeDocument/AutoMakeDocument.exe"),
+        ("README.md", "AutoMakeDocument/README.md"),
+        ("templates", "AutoMakeDocument/templates"),
+        ("config", "AutoMakeDocument/config"),
     ]
     
     for src, dst in files_to_copy:
         src_path = project_root / src
-        dst_path = project_root / dst
+        dst_path = dist_dir / dst
         
         if src_path.exists():
             if src_path.is_file():
@@ -95,7 +94,20 @@ def create_distribution_folder():
             else:
                 shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
     
+    # ZIPファイルを作成
+    zip_path = dist_dir / "AutoMakeDocument.zip"
+    if zip_path.exists():
+        zip_path.unlink()
+    
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for file_path in portable_dir.rglob('*'):
+            if file_path.is_file():
+                arcname = file_path.relative_to(dist_dir)
+                zipf.write(file_path, arcname)
+    
     print(f"配布用フォルダを作成しました: {portable_dir}")
+    print(f"ZIPファイルを作成しました: {zip_path}")
+    print(f"ZIPファイルサイズ: {zip_path.stat().st_size / (1024*1024):.1f}MB")
 
 if __name__ == "__main__":
     build_app() 

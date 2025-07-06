@@ -26,7 +26,7 @@ class AutoMakeDocumentApp:
         self.logger = None
         
         # アプリケーションディレクトリを設定
-        self.app_dir = Path(__file__).parent.parent
+        self.app_dir = self._get_app_directory()
         self.data_dir = self.app_dir / "data"
         self.config_dir = self.app_dir / "config"
         self.templates_dir = self.app_dir / "templates"
@@ -38,6 +38,15 @@ class AutoMakeDocumentApp:
         self._initialize_config()
         self._initialize_logger()
         
+    def _get_app_directory(self) -> Path:
+        """アプリケーションディレクトリを取得"""
+        if getattr(sys, 'frozen', False):
+            # PyInstallerで作成された実行ファイルの場合
+            return Path(sys.executable).parent
+        else:
+            # 開発環境の場合
+            return Path(__file__).parent.parent
+    
     def _create_directories(self):
         """必要なディレクトリを作成"""
         dirs_to_create = [
@@ -77,6 +86,9 @@ class AutoMakeDocumentApp:
                 self.app.setWindowIcon(QIcon(str(icon_path)))
                 
             # メインウィンドウを作成
+            if self.config_manager is None or self.logger is None:
+                raise RuntimeError("設定管理またはログ機能の初期化に失敗しました")
+            
             self.main_window = MainWindow(
                 config_manager=self.config_manager,
                 logger=self.logger,
